@@ -10,9 +10,9 @@ beginfig(1)
 	circleit.v3(btex $v_3$ etex);
 	circleit.v4(btex $v_4$ etex);
 	circleit.v5(btex $v_5$ etex);
-	boxit.px1(btex $x_1$ etex);
-	boxit.px2(btex $x_2$ etex);
-	boxit.pfx1x2(btex $f(x_1,x_2)$ etex);
+	circleit.px1(btex $x_1$ etex);
+	circleit.px2(btex $x_2$ etex);
+	circleit.pfx1x2(btex $f(x_1,x_2)$ etex);
 
 	numeric xdist; xdist = 2cm;
 	numeric ydist; ydist = 3cm;
@@ -41,10 +41,7 @@ beginfig(1)
 	% w c e
 	%   s
 	def sonof(suffix p, q) =
-		% TODO le frecce devono andare da centro di uno a quello dell'altro.
-		% drawarrow p.w-(.1cm,0) -- q.e+(.1cm,0);
-		numeric r; r = xpart (p.c-p.e);
-		drawarrow subpath (.2,.8) of (p.c -- q.c);
+		drawarrow p.c--q.c cutbefore bpath p cutafter bpath q;
 	enddef;
 
 	sonof(pfx1x2,v5);
