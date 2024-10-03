@@ -1,0 +1,1 @@
+Building requires my `matrixcalculus.sty`.
