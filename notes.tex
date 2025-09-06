@@ -320,6 +320,88 @@ then: \[
 %  * https://cs231n.stanford.edu/slides/2024/lecture_4.pdf#page=103
 % TODO add questions from the exam...
 
+\subsection{An Alternative Derivation}
+
+We are now going to derive the same result as above but using ``index
+notation''. Let us start by writing the expression \(c = A \vec b\) using an
+explicit summation as
+\begin{equation}
+	c_i = \sum_j a_{ij} b_j. \label{eq:sum}
+\end{equation}
+We are going to introduce the concept of \emph{free} and \emph{bounded} indices
+that will make summation symbol superfluous in~\ref{eq:sum}. A free index is an
+index that appears only once in a summation and not otherwise defined while a
+bounded index is an indexed that appears more than once. Now in~\ref{eq:sum}
+\(i\) is a free and \(j\) is bounded. By adopting as a convention that in an
+expression involving products of indexed variables the bounded indices are the
+ones summed over we can rewrite \ref{eq:sum} as \(c_j = a_{ij} b_{j}\). This
+convention is known as the Einstein notation.
+
+This allows us to write any \emph{contraction}, unambiguously, without the need
+for summation symbols, where a contraction is an expression that involves a sum
+of products of a set of indexed variables. For example:
+\begin{eqnarray*}
+A \vec x &\rightarrow& a_{ij} x_j, \\
+A B &\rightarrow& a_{ij} b_{jk}, \\
+\vec y \vec x' &\rightarrow& y_i x_j, \\
+\trace(A) &\rightarrow& A_{ii}, \\
+\vec y' \vec x &\rightarrow& y_i x_i, \\
+\vec z = \vec y \hadam x &\rightarrow& z_i = y_i x_i.
+\end{eqnarray*}
+Note how, in the last example we had to write an equality, because the
+expression otherwise would have been equal to the one above. Putting an index on
+the left of the equality clears the meaning and it is why we use
+the ``not otherwise defined'' clause in the definition above. This problem could
+be solved by using \emph{contra} and \emph{contravariant} indices but always
+writing the expression in an equality avoids the need to introduce this new
+concepts and this is what we are going to do from now on.
+
+We now want to define a calculus over this contractions but first we need a
+small extension to our convention: the Kronecker delta, which is defined as
+\marginpar{Sometimes \(\delta_{ij}\) is written as \(e_i \krone e_j\) where
+\(\krone\) in this context is not to be interpreted as the Kronecker product in
+the matrix sense but its own thing.}
+\[
+\delta_{ij} = \left\{\begin{array}{ll}
+                     1 & \mbox{if \(i = j\)} \\
+                     0 & \mbox{otherwise}
+                     \end{array}\right..
+\] This symbol has the following properties:
+\begin{itemize}
+\item \(\delta_{ij} = \delta_{ji}\) from the commutativity of the equality
+between indices;
+\item \(\delta_{ij} a_j = a_i\) and \(\delta_{ij} a_{jk} = a_{ik}\) from the
+transitivity of the equality between indices.
+\end{itemize}
+
+We can now define define a simple calculus for contractions by noting that
+\(\partialfrac{a_i}{a_j} = \delta_{ij}\) and
+\(\partialfrac{a_{ij}}{a_{kl}} = \delta_{ik}\delta_{jl}\). The first result
+follows from noting that \(\partialfrac{\vec a}{\vec a} = I\). We are now ready
+to write the derivative of a product between to matrices
+\(c_{ij} = f_{ij}(x) = a_{ik} x_{kj}\) as \[
+\partialfrac{}{x_{\alpha\beta}} f_{ij}(x)
+= \partialfrac{}{x_{\alpha\beta}} a_{ik} x_{kj}
+= a_{ik} \partialfrac{x_{kj}}{x_{\alpha\beta}}
+= a_{ik} \delta_{k\alpha} \delta_{j\beta}
+= a_{i\alpha} \delta_{j\beta}.
+\] Note how the result is an object with four indices i.e.
+\(\left(\partialfrac f x\right)_{ij\alpha\beta}\). Also since we are using
+indices the expression is composed only by multiplications between scalars,
+hence, with the equality noted above, differentiation is trivial.
+
+Deriving the formula for gradient propagation is also trivial since if we let
+\(l\) be our loss we have that \[
+\partialfrac{l}{x_{\alpha\beta}}
+= \partialfrac{l}{c_{ij}} \partialfrac{c_{ij}}{x_{\alpha\beta}}
+= \partialfrac{l}{c_{ij}} a_{i\alpha} \delta_{j\beta}
+= \partialfrac{l}{c_{ij}} \delta_{j\beta} a_{i\alpha}
+= \partialfrac{l}{c_{i\beta}} a_{i\alpha}
+= a_{i\alpha} \partialfrac{l}{c_{i\beta}},
+\] which is just \(A' G\) where \(G\) is \(\partialfrac{l}{c_{i\beta}}\).
+
+% TODO: cirate Soren Laue
+
 \bibliographystyle{plain}
 \bibliography{bibliography}
 
