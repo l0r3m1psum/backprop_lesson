@@ -322,6 +322,10 @@ then: \[
 
 \subsection{An Alternative Derivation}
 
+% https://www.brown.edu/Departments/Engineering/Courses/En221/Notes/Index_notation/Index_notation.htm
+% https://robotchinwag.com/posts/einsum-gradient/
+% Chapter 26 of Mathematical Methods for Physics an Engineering
+
 We are now going to derive the same result as above but using ``index
 notation''. Let us start by writing the expression \(c = A \vec b\) using an
 explicit summation as
@@ -344,6 +348,7 @@ of products of a set of indexed variables. For example:
 A \vec x &\rightarrow& a_{ij} x_j, \\
 A B &\rightarrow& a_{ij} b_{jk}, \\
 \vec y \vec x' &\rightarrow& y_i x_j, \\
+\vec y A \vec x' &\rightarrow& y_i a_{ij} x_j, \\
 \trace(A) &\rightarrow& A_{ii}, \\
 \vec y' \vec x &\rightarrow& y_i x_i, \\
 \vec z = \vec y \hadam x &\rightarrow& z_i = y_i x_i.
@@ -386,9 +391,11 @@ to write the derivative of a product between to matrices
 = a_{ik} \delta_{k\alpha} \delta_{j\beta}
 = a_{i\alpha} \delta_{j\beta}.
 \] Note how the result is an object with four indices i.e.
-\(\left(\partialfrac f x\right)_{ij\alpha\beta}\). Also since we are using
-indices the expression is composed only by multiplications between scalars,
-hence, with the equality noted above, differentiation is trivial.
+\(\left(\partialfrac f x\right)_{ij\alpha\beta}\). It is necessary to add this
+two new \emph{fresh} indices, denoted with greek letters, because we need the
+rate of change of every variable w.r.t. every other. Since we are using indices
+the expression is composed only by multiplications between scalars, hence, with
+the equalities noted above, differentiation is trivial.
 
 Deriving the formula for gradient propagation is also trivial since if we let
 \(l\) be our loss we have that \[
@@ -400,7 +407,25 @@ Deriving the formula for gradient propagation is also trivial since if we let
 = a_{i\alpha} \partialfrac{l}{c_{i\beta}},
 \] which is just \(A' G\) where \(G\) is \(\partialfrac{l}{c_{i\beta}}\).
 
-% TODO: cirate Soren Laue
+As you can see, once you get used to it, the index notation is more expressive
+and easier to use than the classic matrix one in this context. It also
+generalizes better to higher dimensions (or more indices). This also makes
+automatic differentiation libraries based on this formalism more expressive,
+see~\cite{laue}. This convention is also implemented in common software
+libraries e.g. NumpPy implements it with the function
+\texttt{numpy.einsum}.\footnote{This functions usually take as input the two
+variables and a string describing the contraction. For some incomprehensible
+reason the syntax used translating this expressions like
+\(c_{ij} = a_{ik} b_{kj}\) is \texttt{ik,kj->ij} instead of something like
+\texttt{ij=ik*kj}.}
+
+% \(a_i\stackrel{i}{*}b_i\) a better notation that Laue et ali
+
+% https://stackoverflow.com/a/47609896
+% TODO: parlare di einsum e di come implementare la retropopagazione per il suo
+% caso generale i.e. n indici
+% è possibile trasformare una contrazione nella trasformazione lineare
+% (matriciale) equivalente? E.g. \delta_{ij} a_{kl} = I \knone A
 
 \bibliographystyle{plain}
 \bibliography{bibliography}
