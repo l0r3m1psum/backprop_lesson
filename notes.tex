@@ -212,7 +212,7 @@ case of matrix operations.
 
 The first one is a memory problem, to train neural networks we often
 do computations with big matrices, multiplying two matrices of size \(n \times
-n\) requires at leats \(\Omega(n^2)\) mathematical operations\footnote{The
+n\) requires at least \(\Omega(n^2)\) mathematical operations\footnote{The
 naive matrix multiplication algorithm requires \(O(n^3)\) operations, there are
 better ones but they cannot require less than \(\Omega(n^2)\), so we are going
 to make a very rosey assumption here.}. If you consider that a single precision
@@ -222,11 +222,11 @@ allocate 4 bytes for pointers to the 2 parents, 4 bytes for the value of the
 operation and another 4 for its gradient, ignoring the fact that we also need a
 way to distinguish a among the various kinds of operations.} so there are 8
 bytes of overhead per
-operation so if you les \(n=1024\) we would be \(8 \cdot 1024^2\), i.e. 8MiB,
+operation so if you let \(n=1024\) we would be \(8 \cdot 1024^2\), i.e. 8MiB,
 of overhead for just a single operation.
 
 The second problem is one of performance, if we the values of our operations
-all arround in memory it not possible to use optimized BLAS routines to
+all around in memory it not possible to use optimized BLAS routines to
 implement the linear algebra operations we care about, also due to how computer
 works it is not really possible to implement them ourselves. Since what we care
 about are mostly matrix operations it makes sense to perform operations
@@ -248,7 +248,7 @@ vector \(\vec g\) with the Jacobian at that node.
 
 The problem is going to become evident with the following example, let \(\vec
 f(\vec x) = \vec a \hadam \vec x,\) where \(\hadam\) is the element-wise
-roduct. Its Jacobian is \[
+product. Its Jacobian is \[
 J = \left[\begin{array}{ccc}
 a_1 & \cdots & 0 \\
 \vdots & \ddots & \vdots \\
@@ -277,7 +277,7 @@ Neural networks are often trained in batches so the multiplications performed
 with matrices are not in the form of a matrix and a vector but of a matrix and
 a matrix and a matrix. Let \(F(X) = AX,\) what is \(\partialfrac{F(X)}{X}?\)
 
-The answare is: its debated~\cite{notion}. Why is this important? Matrix multiplication is
+The answer is: its debated~\cite{notion}. Why is this important? Matrix multiplication is
 arguably the most important operation in neural networks, therefore it is very
 important to be able to back propagate through it. Where is the problem,
 whatever \(\partialfrac{F(X)}{X}\) is it needs to contain al possible partial
@@ -285,8 +285,8 @@ derivatives of the input w.r.t. the output, for simplicity say that the input
 and and the output have the same shape and are both square so
 \(\partialfrac{F(X)}{X}\) needs to contain \(n \times n \times n \times n\)
 numbers in it, now if \(n=1024\) then \(\partialfrac{F(X)}{X},\) for single
-precision floatin point numbers, needs to occupy at least 4TiB, which as of
-today no GPU on earth can store. Luckly it is sparse, we just need a way to
+precision floating point numbers, needs to occupy at least 4TiB, which as of
+today no GPU on earth can store. Luckily it is sparse, we just need a way to
 implicitly perform the vJp.
 
 We are going to need a few pieces, first let \(\langle\vec x,\vec y\rangle\) be
@@ -294,7 +294,7 @@ the inner product of the vectors \(\vec x\) and \(\vec y.\) It can be proven
 that \(\partialfrac{\langle\vec f(\vec x),\vec g(\vec x)\rangle}{\vec x}
 = \partialfrac{\vec f(\vec x)}{\vec x} \vec g(\vec x)
 	+ \partialfrac{\vec g(\vec x)}{\vec x} \vec f(\vec x),\) so if we keep one
-of the two arguments costant deriving the inner product gives us the vJp. E.g.
+of the two arguments constant deriving the inner product gives us the vJp. E.g.
 \(\partialfrac{\langle\vec a \hadam \vec x,\vec g\rangle}{\vec x}
 = \vec a \hadam \vec g.\)
 
@@ -303,7 +303,7 @@ one on top of the other. In this way we can generalize our our defition of
 inner product to matrices by letting \(\langle A,B\rangle =
 \langle\vect(A),\vect(B)\rangle.\) Let \(\trace(A)\) be the sum of the diagonal
 entries of a square matrix, we have that \(\langle A,B\rangle = \trace(A'B).\)
-Finally it can be prooven that \(\partialfrac{\trace(X'A)}{X} =
+Finally it can be proven that \(\partialfrac{\trace(X'A)}{X} =
 A\)~\cite{cookbook,magnus}.
 
 We are now ready to find the vJp of the matrix-matrix multiplication \(A X\),
@@ -392,7 +392,7 @@ to write the derivative of a product between to matrices
 = a_{i\alpha} \delta_{j\beta}.
 \] Note how the result is an object with four indices i.e.
 \(\left(\partialfrac f x\right)_{ij\alpha\beta}\). It is necessary to add this
-two new \emph{fresh} indices, denoted with greek letters, because we need the
+two new \emph{fresh} indices, denoted with Greek letters, because we need the
 rate of change of every variable w.r.t. every other. Since we are using indices
 the expression is composed only by multiplications between scalars, hence, with
 the equalities noted above, differentiation is trivial.
