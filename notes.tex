@@ -7,54 +7,45 @@
 \usepackage{matrixcalculus}
 
 \begin{document}
+
 \maketitle
 
 \section{Inroduction}
 
-The task performed by a neural network is determined by the values of its weights.
-To find the weight needed to perform a certain task we use a series of examples
-(the training data,) together with a loss function that determines how far we are
-from performing said task on the given examples. In order to get our network
-closer to perform the task we want on the examples we use a \emph{gradient}
-descent algorithm.
+When training a neural network it is necessary to calculate the gradient of the
+loss w.r.t. the parameters. Automating this process is necessary since manual
+differentiation is time consuming and error prone.
 
-We need a way to calculate the gradient of the loss of the neural network on
-the example data w.r.t. the weights of the network.
-
-In the context of neural networks it is often the case that we modify the model
-itself to make the task learnable with the available data. This is takes a lot of
-trial and error, therefore we need an automated way to calculate said gradient.
-
-A possible way to do so is to is \emph{numerical differentiation}. That is, in
-its most basic form, to approximate the gradient using the definition of the
-derivative, i.e. \[\lim_{h \to 0} \frac{f(x+h)-f(x)} h.\]
+A possible way to automate it is to is \emph{numerical differentiation}. That
+is, in its most basic form, approximating the gradient using the definition of
+the derivative, i.e. \[\lim_{h \to 0} \frac{f(x+h)-f(x)} h.\]
 
 Let us try to see if this is a viable option with an example, let
 \begin{equation}
 f(x_1, x_2) = \log(x_1)+x_1x_2-\sin(x_2) \label{eqn:example}
 \end{equation}
-and say that we want to calculate \(\nabla{f(2,5)}.\) We now want to confront
-the value that we would obtain from the numerical approximation against the
-formula that we would find by hand. Since \(\nabla{f(2,5)}\) has two elements,
-let us start from the second. We know from basic calculus that
-\(\partialfrac{f(x_1,x_2)}{x_2} = x_1-\cos(x2).\) Now to use the limit
+and say that we want to calculate \(\nabla{f(2,5)}\). We want to confront the
+value that we would obtain from the numerical approximation against the formula
+that we would find by hand. Since \(\nabla{f(2,5)}\) has two elements, let us
+start from the second. We know from basic calculus that
+\(\partialfrac{f(x_1,x_2)}{x_2} = x_1-\cos(x2)\). Now to use the limit
 definition in our numerical approximation, since computers cannot take limits,
-we are going to use a small number instead for \(h.\) Let us write a quick
+we are going to use a small number instead for \(h\). Let us write a quick
 implementation below.
 
 \begin{verbatim}
 import numpy
 def f(x1,x2): return numpy.log(x1) + x1*x2 - numpy.sin(x2)
 x1, x2, h = numpy.array([2.,5.,1e-5], dtype=numpy.float32)
-d_f_x2 = (f(x1,x2+h)-f(x1,x2))/h
-print(numpy.absolute(x1-numpy.cos(x2) - d_f_x2))
+d_f_x2 = (f(x1,x2+h) - f(x1,x2))/h
+print(numpy.absolute((x1 - numpy.cos(x2)) - d_f_x2))
 \end{verbatim}
 
-The code above prints \texttt{0.09509146}, this means
-that the numerical approximation, in this simple example, is already off by one
-decimal point. This is not acceptable, not to mention that to find a gradient
-of \(n\) elements it requires \(O(n)\) evaluations of the function which may be
-very expensive.
+The code above prints \texttt{0.09509146}, this means that the numerical
+approximation, in this simple example, is already off by one decimal point.
+This is not acceptable, not to mention that to find a gradient of a function
+with \(n\) arguments it requires \(O(n)\) evaluations of the function, which may
+be very expensive.
 
 Another way to automate the calculation of the gradient is to use
 \emph{symbolic differentiation}. That is to treat the expression of the loss
@@ -62,18 +53,18 @@ as an data structure\footnote{A directed acyclic graph.} and write an algorithm
 that applies the rules of calculus for us. Some people may tell you that this
 approach does not scale due to \emph{expression swell}, that is to say that the
 na\"ive application of calculus rules can lead to an explosion in the size of
-the expression and in a lot of redundant calculations. E.g
-\(\partialfrac{\sin(e^x)} x = e^x \cos(e^x),\) as you can see in a na\"ive
+the expression and in a lot of redundant calculations. E.g.
+\(\partialfrac{\sin(e^x)} x = e^x \cos(e^x)\), as you can see in a na\"ive
 implementation we have to evaluate and store the node representing \(e^x\) two
 times. This problem can be solved with \emph{common sub-expression
 elimination}. The real problem lies in the fact that we have to use another
 language to specify our neural network and in how to differentiate through
-control-flow\footnote{Again this is not strictly true. We could use our own
+control-flow.\footnote{Again this is not strictly true. We could use our own
 programming language as the language to specify the expression that we want to
 differentiate and than use \emph{reflection} to transform it in a suitable data
 structure. With this approach we can also make control-flow structures work but
 if you get this far you have to make some philosophy about what you mean by
-symbolic differentiation\dots~\cite{equiv}.}.
+symbolic differentiation\dots~\cite{equiv}.}
 
 In the rest of this document we are going to introduce the
 \emph{back-propagation} algorithm which is a special case of \emph{reverse-mode
@@ -90,10 +81,10 @@ usually implemented and how this gives us for free support for deriving through
 control-flow.
 
 Let us start by considering equation~\ref{eqn:example}, in particular how we can
-use the chain rule to calculate the two elements of its gradient. But first a
-bit of notation, we are going to decompose equation~\ref{eqn:example} in its
-elementary operations as shown of the left side of figure~\ref{fig:example}.
-We can then express the two elements of the gradient as
+use the chain rule to calculate the two elements of its gradient. Let us start
+by decomposing equation~\ref{eqn:example} in its elementary operations, as
+shown of the left side of figure~\ref{fig:example}. We can then express the two
+elements of the gradient as
 \begin{eqnarray*}
 \partialfrac{f(x_1,x_2)}{x_1}
 &=& \partialfrac{v_5}{v_4}\left(\partialfrac{v_4}{v_1}\partialfrac{v_1}{v_{-1}}
@@ -145,29 +136,31 @@ f(x_1,x_2) &=& v_5,
 \caption{Graph representing the expression.}
 \end{figure}
 
-We can start by noting a few things. The paths in the graph from the source
-node \(v_5\)
-to the sinks \(v_{-1}\) and \(v_0\) correspond to the addends in the chain
-rule, e.g.
-\(\partialfrac{v_5}{v_3}\partialfrac{v_3}{v_0}\) correspond to the path
-\(((v_5,v_3), (v_3,v_0)).\) We also have that we can evaluate a path (or addend
-of a chain rule), from left to right, e.g. \[
+We can now start to note a few things. The paths in the graph from the source
+node \(v_5\) to the sinks \(v_{-1}\) and \(v_0\) correspond to the addends in
+the chain rule, e.g. \(\partialfrac{v_5}{v_3}\partialfrac{v_3}{v_0}\)
+corresponds to the path \(((v_5,v_3), (v_3,v_0))\). We also have that we can
+evaluate a path (or addend of a chain rule), from left to right, e.g. \[
 \partialfrac{v_5}{v_4}\partialfrac{v_4}{v_1}\partialfrac{v_1}{v_{-1}}
 = \partialfrac{v_5}{v_1}\partialfrac{v_1}{v_{-1}}
 = \partialfrac{v_5}{v_{-1}},\]
 that is we can evaluate it by left-multiplying the derivatives of \(v_5\)
 w.r.t. every intermediate variable \(v_i\) along the path.
 
-This are the foundamental ideas behing the back-propagation algorithm. We
+This are the fundamental ideas behind the back-propagation algorithm. We
 can calculate the gradient incrementally, starting at the source node and going
 backward, storing at each node \(v_i\) its derivative with respect to the
-source \(\partialfrac{v_5}{v_i}.\)
-If we let \(\bar v_i = \partialfrac{v_5}{v_i}\) we can see how this calculation
-is performed on the right side of figure~\ref{fig:example}.
+source \(\partialfrac{v_5}{v_i}\). If we let \(\bar v_i =
+\partialfrac{v_5}{v_i}\) we can see how this calculation is performed on the
+right side of figure~\ref{fig:example}. Note how for each intermediate variable
+\(v_i\) the calculation takes always the following form
+\(\bar v_i = \bar v_j \partialfrac{v_j}{v_i}\) where \(v_j\) is a node that
+depends on \(v_i\); we call this operation, for reasons which are going to be
+clear later, the vector-Jacobian product (vJp).
 
 The way in which this is usually implemented in a programming language is by
 keeping track of all the variables and operations used on them so that at the
-end of the computation of the function we have the graph that we can use to
+end of the computation of the function we have a graph that we can use to
 back-propagate the gradient through. In the case of Python this is done by
 creating a class like the one below.
 
@@ -183,23 +176,32 @@ class Scalar:
     parent2: Scalar
 \end{verbatim}
 
-To make the generation of the graph more ergonomic one can implement the dunder
-methods to use the standard mathematical operation on \texttt{Scalar} objects.
-It is important that before the back-propagation step the graph is
-topologically sorted.
+To make the generation of the graph more ergonomic one can overload the standard
+mathematical operation on \texttt{Scalar} objects. It is important that before
+the back-propagation step the graph is topologically sorted.
 
-We will illustrate the way in which this
-enables us to back-propagate through contol-flow with an example: when you train
-a neural network you update its weight in a loop, so if your network is
-represented by a static expression the graph that is used to back propagate has
-always the same form\footnote{Of course the values stored in it are going to
-change.}, if in the code that we use to specify the neural network we have an
-\texttt{if} that take one of its branches based on a calculated value the graph
-that is going to be generated is going to differ from one of the iteration of
-the loop to another. E.g. \texttt{x = a+b if a > 0 else a+c}.
-The back-propagation algorithm is therefore going to
-propagate the gradient though a different graph every time but it does not care
-about how it was generated, if by an \texttt{if}, a \texttt{for} or an
+\iffalse
+\begin{verbatim}
+let G = (V, E) be the DAG
+let v[] = reverse_topo_sort(graph)
+v[:].grad = 0; v[0].grad = 1
+for j in v:
+	for i in {i : (j, i) in E}:
+		v[i].grad += vJp(v[j].grad, i)
+\end{verbatim}
+\fi
+
+We will illustrate the way in which this enables us to back-propagate through
+contol-flow with an example. When you train a neural network you update its
+weights in a loop, so if your network is represented by a static expression the
+graph that is used to back propagate has always the same form,\footnote {Of
+course the values stored in it are going to change.} if in the code that we use
+to specify the neural network we have an \texttt{if} that take one of its
+branches based on a calculated value the graph that is going to be generated is
+going to differ from one of the iteration of the loop to another. E.g. \texttt
+{x = a+b if a > 0 else a+c}. The back-propagation algorithm is therefore going
+to propagate the gradient though a different graph every time but it does not
+care about how it was generated, if by an \texttt{if}, a \texttt{for} or an
 exception.
 
 \section{Back-propagation for Vectors and Matrices}
@@ -210,32 +212,32 @@ approach. We are now going to illustrate them first for the case in which the
 gradient is back-propagated through vector operations then for the more general
 case of matrix operations.
 
-The first one is a memory problem, to train neural networks we often
-do computations with big matrices, multiplying two matrices of size \(n \times
-n\) requires at least \(\Omega(n^2)\) mathematical operations\footnote{The
+The first one is a memory problem, to train neural networks we often do
+computations with big matrices, multiplying two matrices of size \(n \times n\)
+requires at least \(\Omega(n^2)\) mathematical operations.\footnote{The
 naive matrix multiplication algorithm requires \(O(n^3)\) operations, there are
 better ones but they cannot require less than \(\Omega(n^2)\), so we are going
-to make a very rosey assumption here.}. If you consider that a single precision
+to make a very rosey assumption here.} If we consider that a single precision
 floating point number occupies 4 bytes, and that to keep track of an operation
-you are going to need at least 16 bytes\footnote{For a binary operation say we
-allocate 4 bytes for pointers to the 2 parents, 4 bytes for the value of the
-operation and another 4 for its gradient, ignoring the fact that we also need a
-way to distinguish a among the various kinds of operations.} so there are 8
-bytes of overhead per
-operation so if you let \(n=1024\) we would be \(8 \cdot 1024^2\), i.e. 8MiB,
-of overhead for just a single operation.
+we are going to need at least 17 bytes\footnote{For a binary operation say we
+allocate 4 bytes for each pointer to the 2 parents, 4 bytes for the value of the
+operation and another 4 for its gradient, and 1 byte to distinguish a among the
+various kinds of operations.} so there are 9 bytes of overhead per operation.
+If we let \(n=1024\) we would be \(9 \cdot 1024^2\), i.e. 9MiB, of overhead for
+just a single operation.
 
-The second problem is one of performance, if we the values of our operations
-all around in memory it not possible to use optimized BLAS routines to
-implement the linear algebra operations we care about, also due to how computer
-works it is not really possible to implement them ourselves. Since what we care
-about are mostly matrix operations it makes sense to perform operations
-directly on vectors (and matrices) and not perform them at the granular scalar
-level, we will need to add a few more bytes to keep track of the dimension of
-the vector/matrix but it is going to be worth it.
+The second problem is one of performance, if the values of our operations all
+around in memory it not possible to use optimized BLAS routines to implement
+the linear algebra operations we care about, also due to how computers work it
+is not really possible to implement them ourselves if the data is not stored
+densely in memory. Since what we care about are mostly matrix operations it
+makes sense to perform operations directly on vectors (and matrices) and not
+perform them at the more granular scalar level. we will need to add a few more
+bytes to keep track of the dimension of the vector/matrix but it is going to be
+worth it.
 
-Doing this introduces another problem, to see what is is let us start with a
-quick refresh of multivariable calculus let \(\vec y = \vec f(\vec x),\) where
+Doing this introduces another problem. To see what it is let us start with a
+quick refresh of multivariable calculus let \(\vec y = \vec f(\vec x)\), where
 \(\vec f\) is a function of vector argument and value. Its derivative is a
 matrix called the Jacobian with the following contents \[
 \left[\begin{array}{ccc}
@@ -246,8 +248,8 @@ matrix called the Jacobian with the following contents \[
 \] So back propagating the gradient now requires multiplying the gradient
 vector \(\vec g\) with the Jacobian at that node.
 
-The problem is going to become evident with the following example, let \(\vec
-f(\vec x) = \vec a \hadam \vec x,\) where \(\hadam\) is the element-wise
+The problem is going to become evident with the following example, let
+\(\vec f(\vec x) = \vec a \hadam \vec x,\) where \(\hadam\) is the element-wise
 product. Its Jacobian is \[
 J = \left[\begin{array}{ccc}
 a_1 & \cdots & 0 \\
@@ -260,31 +262,31 @@ that is \[
 J \vec g = \vec a \hadam \vec g.
 \] This is because \(J\) is \emph{sparse}, i.e. most of its elements are 0.
 We can therefore implement matrix vector multiplication in a more space and
-time efficient way by just storing \(\vec a\) instead of \(J.\) This is called
+time efficient way by just storing \(\vec a\) instead of \(J\). This is called
 Jacobian-vector product (vJp) and can often be calculated implicitly in an
 efficient way.
 
 It is important to note that not all Jacobians are sparse, if we let \(\vec
 f(\vec x) = A \vec x,\) where A is a matrix, then
-\(\partialfrac{\vec f(\vec x)}{\vec x} = A',\) where \(A'\) is \(A\)
+\(\partialfrac{\vec f(\vec x)}{\vec x} = A'\), where \(A'\) is \(A\)
 transposed.
 
-So the Jacobians of many function is sparse and we can make some space and time
-savings by being smart in the way in wich we store and operate on this sparse
-Jacobians.
+So the Jacobians of many functions we care about are sparse and we can make some
+space and time savings by being smart in the way in which we store and operate
+on this sparse Jacobians.
 
 Neural networks are often trained in batches so the multiplications performed
 with matrices are not in the form of a matrix and a vector but of a matrix and
-a matrix and a matrix. Let \(F(X) = AX,\) what is \(\partialfrac{F(X)}{X}?\)
+a matrix and a matrix. Let \(F(X) = AX,\) what is \(\partialfrac{F(X)}{X}\)?
 
-The answer is: its debated~\cite{notion}. Why is this important? Matrix multiplication is
-arguably the most important operation in neural networks, therefore it is very
-important to be able to back propagate through it. Where is the problem,
-whatever \(\partialfrac{F(X)}{X}\) is it needs to contain al possible partial
-derivatives of the input w.r.t. the output, for simplicity say that the input
-and and the output have the same shape and are both square so
+The answer is: its debated~\cite{notion}. Why is this important? Matrix
+multiplication is arguably the most important operation in neural networks,
+therefore it is very important to be able to back propagate through it. Where
+is the problem? Whatever \(\partialfrac{F(X)}{X}\) is it needs to contain al
+possible partial derivatives of the input w.r.t. the output, for simplicity say
+that the input and and the output have the same shape and are both square so
 \(\partialfrac{F(X)}{X}\) needs to contain \(n \times n \times n \times n\)
-numbers in it, now if \(n=1024\) then \(\partialfrac{F(X)}{X},\) for single
+numbers in it; if \(n=1024\) then \(\partialfrac{F(X)}{X},\) for single
 precision floating point numbers, needs to occupy at least 4TiB, which as of
 today no GPU on earth can store. Luckily it is sparse, we just need a way to
 implicitly perform the vJp.
@@ -293,16 +295,16 @@ We are going to need a few pieces, first let \(\langle\vec x,\vec y\rangle\) be
 the inner product of the vectors \(\vec x\) and \(\vec y.\) It can be proven
 that \(\partialfrac{\langle\vec f(\vec x),\vec g(\vec x)\rangle}{\vec x}
 = \partialfrac{\vec f(\vec x)}{\vec x} \vec g(\vec x)
-	+ \partialfrac{\vec g(\vec x)}{\vec x} \vec f(\vec x),\) so if we keep one
+	+ \partialfrac{\vec g(\vec x)}{\vec x} \vec f(\vec x)\), so if we keep one
 of the two arguments constant deriving the inner product gives us the vJp. E.g.
 \(\partialfrac{\langle\vec a \hadam \vec x,\vec g\rangle}{\vec x}
 = \vec a \hadam \vec g.\)
 
 Let \(\vect(A)\) be a vector made by stacking the columns of the matrix \(A\)
-one on top of the other. In this way we can generalize our our defition of
+one on top of the other. In this way we can generalize our our definition of
 inner product to matrices by letting \(\langle A,B\rangle =
-\langle\vect(A),\vect(B)\rangle.\) Let \(\trace(A)\) be the sum of the diagonal
-entries of a square matrix, we have that \(\langle A,B\rangle = \trace(A'B).\)
+\langle\vect(A),\vect(B)\rangle\). Let \(\trace(A)\) be the sum of the diagonal
+entries of a square matrix, we have that \(\langle A,B\rangle = \trace(A'B)\).
 Finally it can be proven that \(\partialfrac{\trace(X'A)}{X} =
 A\)~\cite{cookbook,magnus}.
 
@@ -325,6 +327,7 @@ then: \[
 % https://www.brown.edu/Departments/Engineering/Courses/En221/Notes/Index_notation/Index_notation.htm
 % https://robotchinwag.com/posts/einsum-gradient/
 % Chapter 26 of Mathematical Methods for Physics an Engineering
+% TODO: add sensible definition of free and bound indices.
 
 We are now going to derive the same result as above but using ``index
 notation''. Let us start by writing the expression \(\vec c = A \vec b\) using an
