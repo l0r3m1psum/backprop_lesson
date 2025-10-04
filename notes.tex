@@ -125,15 +125,15 @@ f(x_1,x_2) &=& v_5,
 \bar v_{-1} &\pluseq& \bar v_1 \partialfrac{v_1}{v_{-1}}
 \end{eqnarray*}
 \end{minipage}
-\label{fig:example}
 \caption{Left forward propagation. Right back-propagation of the gradient.}
+\label{fig:example}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics{figures.1}
-\label{fig:dag}
 \caption{Graph representing the expression.}
+\label{fig:dag}
 \end{figure}
 
 We can now start to note a few things. The paths in the graph from the source
@@ -156,7 +156,24 @@ right side of figure~\ref{fig:example}. Note how for each intermediate variable
 \(v_i\) the calculation takes always the following form
 \(\bar v_i = \bar v_j \partialfrac{v_j}{v_i}\) where \(v_j\) is a node that
 depends on \(v_i\); we call this operation, for reasons which are going to be
-clear later, the vector-Jacobian product (vJp).
+clear later, the vector-Jacobian product (vJp). The back-propagation algorithm
+is shown in figure~\ref{fig:algorithm}.
+
+\begin{figure}
+\centering
+\begin{minipage}{5cm}
+\begin{tabbing}
+\(s \leftarrow \max V\)\\
+\(\bar v_s \leftarrow 1\)\\
+for\=\ \(j \in V\) in topological order\\
+\> for\=\ \(i \in \{i : (j, i) \in E\}\)\\
+\> \> \(\displaystyle\bar v_i \leftarrow \bar v_i + \bar v_j \partialfrac{v_j}{v_i}\)
+\end{tabbing}
+\end{minipage}
+\caption{The back-propagation algorithm, where the \(G = (V, E)\) is the DAG
+representing the scalar function.}
+\label{fig:algorithm}
+\end{figure}
 
 The way in which this is usually implemented in a programming language is by
 keeping track of all the variables and operations used on them so that at the
@@ -179,17 +196,6 @@ class Scalar:
 To make the generation of the graph more ergonomic one can overload the standard
 mathematical operation on \texttt{Scalar} objects. It is important that before
 the back-propagation step the graph is topologically sorted.
-
-\iffalse
-\begin{verbatim}
-let G = (V, E) be the DAG
-let v[] = reverse_topo_sort(graph)
-v[:].grad = 0; v[0].grad = 1
-for j in v:
-	for i in {i : (j, i) in E}:
-		v[i].grad += vJp(v[j].grad, i)
-\end{verbatim}
-\fi
 
 We will illustrate the way in which this enables us to back-propagate through
 contol-flow with an example. When you train a neural network you update its
