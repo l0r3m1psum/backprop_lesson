@@ -160,6 +160,7 @@ clear later, the vector-Jacobian product (vJp). The back-propagation algorithm
 is shown in figure~\ref{fig:algorithm}.
 
 \begin{figure}
+% https://www.math.uh.edu/~torok/math_6298/latex/environments/info/latex2e_62.html
 \centering
 \begin{minipage}{5cm}
 \begin{tabbing}
@@ -357,18 +358,18 @@ of products of a set of indexed variables. For example:
 \noindent
 \begin{minipage}{.5\textwidth}
 \begin{eqnarray*}
-A \vec x &\rightarrow& a_{ij} x_j, \\
-A B &\rightarrow& a_{ij} b_{jk}, \\
-A' B &\rightarrow& a_{ji} b_{jk}, \\
-\vec y \vec x' &\rightarrow& y_i x_j,\\
+A \vec x &\equiv& a_{ij} x_j, \\
+A B &\equiv& a_{ij} b_{jk}, \\
+A' B &\equiv& a_{ji} b_{jk}, \\
+\vec y \vec x' &\equiv& y_i x_j,\\
 \end{eqnarray*}
 \end{minipage}
 \begin{minipage}{.5\textwidth}
 \begin{eqnarray*}
-\vec y A \vec x' &\rightarrow& y_i a_{ij} x_j, \\
-\trace(A) &\rightarrow& A_{ii}, \\
-\vec y' \vec x &\rightarrow& y_i x_i, \\
-\vec z = \vec y \hadam x &\rightarrow& z_i = y_i x_i.\\
+\vec y A \vec x' &\equiv& y_i a_{ij} x_j, \\
+\trace(A) &\equiv& a_{ii}, \\
+\vec y' \vec x &\equiv& y_i x_i, \\
+\vec z = \vec y \hadam x &\equiv& z_i = y_i x_i.\\
 \end{eqnarray*}
 \end{minipage}
 
