@@ -323,10 +323,13 @@ then: \[
 = \partialfrac{\trace(X'A'G)}{X}
 = A'G.\]
 
-% TODO add examples from
+% TODO: Discuss the "semantic" implications of back-propagation (or gradient
+% calculation in general) i.e. gradient explosion and vanishing together with
+% "patterns in the backward flow"
 %  * https://karpathy.medium.com/yes-you-should-understand-backprop-e2f06eab496b
 %  * https://cs231n.stanford.edu/slides/2016/winter1516_lecture4.pdf
 %  * https://cs231n.stanford.edu/slides/2024/lecture_4.pdf#page=103
+%  * https://karpathy.github.io/neuralnets/#patterns-in-the-backward-flow
 % TODO add questions from the exam...
 
 \subsection{An Alternative Derivation}
@@ -334,7 +337,10 @@ then: \[
 % https://www.brown.edu/Departments/Engineering/Courses/En221/Notes/Index_notation/Index_notation.htm
 % https://robotchinwag.com/posts/einsum-gradient/
 % Chapter 26 of Mathematical Methods for Physics an Engineering
-% TODO: add sensible definition of free and bound indices.
+% TODO: add sensible definition of free and bound indices (i.e. Laue at al.).
+
+% TODO: Write using this notation only
+% https://carldehlin.com/2024/06/05/a-better-notation-for-deep-learning.html
 
 We are now going to derive the same result as above but using ``index
 notation''. Let us start by writing the expression \(\vec c = A \vec b\) using an
