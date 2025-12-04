@@ -1,0 +1,114 @@
+\documentclass{article}
+
+\title{Back-propagation Questions}
+\author{Diego Bellani}
+\date{2025}
+
+\usepackage{matrixcalculus}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+% \setlength{\topsep}{0pt}
+\renewcommand{\theenumi}{\Alph{enumi}}
+
+\begin{document}
+
+\maketitle
+
+Why do we use an automatic differentiation technique instead of a numerical
+or symbolical one for calculating the gradient of the loss of a neural network?
+\begin{enumerate}
+\item Reverse mode automatic differentiation allows for the efficient
+calculation of a gradient w.r.t. a scalar even supporting control-flow
+constructs. % correct
+\item It is the easiest to implement among the three techniques even supporting
+control-flow constructs.
+\item Reverse mode automatic differentiation (as opposed to the other two) never
+suffers from numerical problems.
+\item Automatic differentiation techniques are capable of automatically
+simplifying the expression graph hence being more efficient than the other two
+methods.
+\item Reverse mode automatic differentiation is the only method capable of
+calculating the gradiend of losses of vector and matrix argument.
+\end{enumerate}
+
+What is the problem with numerical differentiation in calculating the gradient
+of the loss function of a neural network?
+\begin{enumerate}
+\item It could give numerically imprecise answers. % correct
+\item It works only for scalars and not for vectors and matrices.
+\item Evaluating the loss multiple times makes this method very slow.
+\item Requires too much memory.
+\item It cannot be used if the network contains non-differentiable functions or
+control-flow.
+\end{enumerate}
+
+What is the problem with naive symbolic differentiation in calculating the
+gradient of the loss function of a neural network?
+\begin{enumerate}
+\item The expression generated could contain redundant computations. % correct
+\item The expression evaluated could give a numerically imprecise answer.
+\item The algorithm is inefficient in generating the expression of the
+derivative.
+\item It works only for scalars and not for vectors and matrices.
+\item If the numbers of parameters in the network becomes too large then
+symbolic finding the expression of the derivative becomes too slow.
+\end{enumerate}
+
+What is the problem when propagating the gradient of the loss function of a
+neural network through a function of vector argument and value when using the
+back-propagation algorithm?
+\begin{enumerate}
+\item If not done with care it can be very inneficient due to the instantiation
+of sparse Jacobians. % correct
+\item You have to explicitly keep track of the operations happening on each
+element of the input vector w.r.t. the output vector.
+\item It cannot deal with control-flow.
+\item Storing the gradient with respect to the loss at each node requires too
+much memory and this is why it is not used in practice.
+\item It can give numerically imprecise answers that are accumulated during the
+various steps of the propagation.
+\end{enumerate}
+
+% --------------- Di queste se ne possono fare tante ----------------
+
+\begin{figure}
+\centering
+\includegraphics{figures.1}
+\caption{Graph representing the expression.}
+\label{fig:dag}
+\end{figure}
+
+What is a correct order in which the gradient is propagated through the nodes of
+the graph in figure~\ref{fig:dag}?
+\begin{enumerate}
+\item \(v_5 > v_3 > v_4 > v_1 > v_0 > v_{-1} > v_2\)
+\item \(v_5 > v_3 > v_4 > v_1 > v_2 > v_{-1} > v_0\) % correct
+\item \(v_3 > v_5 > v_4 > v_1 > v_2 > v_{-1} > v_0\)
+\item \(v_5 > v_2 > v_4 > v_1 > v_3 > v_{-1} > v_0\)
+\item \(v_{-1} > v_0 > v_1 > v_2 > v_3 > v_4 > v_5\)
+\end{enumerate}
+
+\newcommand{\pf}{\partialfrac}
+
+What expression calculates the value of the second element of the gradient (the
+derivative of \(v_5\) w.r.t. \(v_0\)) of the function in figure~\ref{fig:dag}?
+\begin{enumerate}
+\item \(\pf{v_5}{v_3} \pf{v_3}{v_0} + \pf{v_5}{v_4} \pf{v_4}{v_2} \pf{v_2}{v_0}\) % correct
+\item \(\pf{v_5}{v_2} \pf{v_2}{v_0} + \pf{v_5}{v_4} \pf{v_4}{v_2} \pf{v_2}{v_0}\)
+\item \(\pf{v_5}{v_3} \pf{v_3}{v_0} + \pf{v_5}{v_4} \pf{v_4}{v_1} \pf{v_1}{v_0}\)
+\item \(\pf{v_5}{v_3} \pf{v_3}{v_2} \pf{v_2}{v_0} + \pf{v_5}{v_4} \pf{v_4}{v_2} \pf{v_2}{v_0}\)
+\item \(\pf{v_5}{v_3} \pf{v_3}{v_0} + \pf{v_5}{v_4} \pf{v_4}{v_2} \pf{v_2}{v_1} \pf{v_1}{v_0}\)
+\end{enumerate}
+
+What expression calculates the derivative of \(v_5\) w.r.t. \(v_2\) of the
+function in figure~\ref{fig:dag}?
+\begin{enumerate}
+\item \(\pf{v_5}{v_4} \pf{v_4}{v_2}\) % correct
+\item \(\pf{v_5}{v_4} \pf{v_4}{v_2} + \pf{v_5}{v_4} \pf{v_4}{v_1}\)
+\item \(\pf{v_5}{v_4} \pf{v_4}{v_2} + \pf{v_5}{v_3}\)
+\item \(\pf{v_5}{v_4} \pf{v_4}{v_2} + \pf{v_5}{v_3} \pf{v_3}{v_0}\)
+\item \(\pf{v_2}{v_0}\)
+\end{enumerate}
+
+\end{document}
